@@ -1,6 +1,7 @@
 "use client";
 
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +23,9 @@ export function EditorNavbar({
             variant="ghost"
             size="icon"
             onClick={onSidebarToggle}
-            aria-label={isSidebarOpen ? "Close project sidebar" : "Open project sidebar"}
+            aria-label={
+              isSidebarOpen ? "Close project sidebar" : "Open project sidebar"
+            }
             className="text-copy-secondary hover:bg-bg-subtle hover:text-copy-primary"
           >
             {isSidebarOpen ? (
@@ -35,7 +38,9 @@ export function EditorNavbar({
 
         <div />
 
-        <div />
+        <div className="flex items-center">
+          <UserButton />
+        </div>
       </div>
     </header>
   );

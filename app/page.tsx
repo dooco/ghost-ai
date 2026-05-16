@@ -1,5 +1,11 @@
-import { EditorWorkspaceShell } from "@/components/editor/editor-workspace-shell";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return <EditorWorkspaceShell />;
+export default async function Home() {
+  const { userId } = await auth();
+  if (userId) {
+    redirect("/editor");
+  } else {
+    redirect("/sign-in");
+  }
 }

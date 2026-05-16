@@ -35,6 +35,7 @@
   --color-copy-faint: var(--text-faint);
   --color-brand: var(--accent-primary);
   --color-accent-dim: var(--accent-primary-dim);
+  --color-bg-auth-panel: var(--bg-auth-panel);
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
@@ -54,6 +55,7 @@
   --text-faint: #505060;
   --accent-primary: #00c8d4;
   --accent-primary-dim: rgba(0, 200, 212, 0.12);
+  --bg-auth-panel: #0a1f23;
   --accent-ai: #6457f9;
   --accent-ai-text: #8b82ff;
   --state-error: #ff4d4f;
@@ -79,7 +81,7 @@
   --border: var(--border-default);
   --input: var(--border-default);
   --ring: var(--accent-primary);
-  
+
   --radius: 0.5rem;
 }
 
@@ -88,6 +90,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased font-sans;
   }
 }

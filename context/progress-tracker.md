@@ -26,6 +26,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - Updated `EditorWorkspaceShell` composition to render the left project sidebar, center canvas scaffold, and right AI panel shell.
 - Implemented auth (feature-spec 03-auth): `ClerkProvider` wraps root layout with `@clerk/ui` dark theme and CSS variable overrides; `proxy.ts` protects all routes except `/sign-in` and `/sign-up`; two-panel sign-in and sign-up pages created; `app/page.tsx` redirects authenticated users to `/editor` and unauthenticated users to `/sign-in`; editor workspace shell moved to `app/editor/page.tsx`; `UserButton` added to editor navbar right section.
 - Implemented feature-spec 04-project-dialogs: added `EditorHome` center content (heading, description, `New Project` button with `Plus` icon) replacing the canvas scaffold in the workspace shell; added `CreateProjectDialog` with live slug preview driven by `lib/slug.ts`; added `RenameProjectDialog` with prefilled autofocused input, current name in description, and Enter-to-submit; added `DeleteProjectDialog` as confirmation-only with destructive button; added `useProjectDialogs` hook (`hooks/use-project-dialogs.ts`) managing dialog mode, target, form name, and submitting state; updated `ProjectSidebar` to render owned/shared mock projects (`lib/mock-projects.ts`, `types/project.ts`), reveal rename/delete icon actions on hover for owned items only, and add a mobile-only backdrop scrim that closes the sidebar on tap; wired editor home and sidebar create/rename/delete entry points through the hook in `EditorWorkspaceShell`. Mock data only — no API or persistence.
+- Implemented feature-spec 05-prisma: created root Prisma config and schema structure (`prisma.config.ts`, `prisma/schema.prisma`, `prisma/models/project.prisma`) with `ProjectStatus` enum, `Project` model, `ProjectCollaborator` model, relation cascade delete, and required indexes; added cached Prisma singleton at `lib/prisma.ts` that branches on `DATABASE_URL` (`prisma+postgres://` uses Accelerate, otherwise `@prisma/adapter-pg`); installed Prisma runtime dependencies (`@prisma/client`, `@prisma/adapter-pg`, `pg`, `@prisma/extension-accelerate`, `dotenv`); ran migration `init_project_data_layer`, generated client, and verified `npm run build` passes.
 
 ## In Progress
 
@@ -37,7 +38,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Open Questions
 
-- No dedicated feature-spec file currently defines AI panel interaction requirements (input behavior, actions, and visibility controls). Should this be added as `context/feature-specs/05-editor-surface.md` before functional implementation?
+- No dedicated feature-spec file currently defines AI panel interaction requirements (input behavior, actions, and visibility controls). Should this be added as `context/feature-specs/06-editor-surface.md` before functional implementation?
 
 ## Architecture Decisions
 
@@ -48,3 +49,4 @@ Update this file whenever the current phase, active feature, or implementation s
 - Editor page now includes full base workspace frame: left floating project sidebar, center canvas scaffold, and right slide-over AI panel shell.
 - Auth wired: Clerk dark theme from `@clerk/ui/themes`, CSS variable overrides, `proxy.ts` route guard, `/sign-in` and `/sign-up` two-panel pages, `/` redirect logic, `UserButton` in navbar.
 - Editor home is now the center content of `/editor`; the previous `CanvasSurface` scaffold remains in the codebase for later use once a project-open state exists. Project sidebar consumes mock data from `lib/mock-projects.ts`; owned vs shared is the sole gating signal for showing rename/delete actions. Dialog state is centralized in `useProjectDialogs` and lives at `EditorWorkspaceShell`.
+- Prisma data layer baseline is now in root runtime paths, not context-only paths: schema/model files are under `prisma/`, client singleton is in `lib/prisma.ts`, and the initial migration has been applied with generated client output in `generated/prisma`.
