@@ -11,6 +11,7 @@ interface ProjectSidebarProps {
   isOpen: boolean;
   ownedProjects: ProjectSummary[];
   sharedProjects: ProjectSummary[];
+  activeProjectId?: string;
   onClose?: () => void;
   onCreate: () => void;
   onRename: (project: ProjectSummary) => void;
@@ -21,6 +22,7 @@ export function ProjectSidebar({
   isOpen,
   ownedProjects,
   sharedProjects,
+  activeProjectId,
   onClose,
   onCreate,
   onRename,
@@ -96,6 +98,7 @@ export function ProjectSidebar({
                     <ProjectListItem
                       key={project.id}
                       project={project}
+                      isActive={project.id === activeProjectId}
                       onRename={onRename}
                       onDelete={onDelete}
                     />
@@ -114,7 +117,11 @@ export function ProjectSidebar({
               ) : (
                 <ul className="flex flex-col gap-1">
                   {sharedProjects.map((project) => (
-                    <ProjectListItem key={project.id} project={project} />
+                    <ProjectListItem
+                      key={project.id}
+                      project={project}
+                      isActive={project.id === activeProjectId}
+                    />
                   ))}
                 </ul>
               )}
@@ -133,19 +140,27 @@ export function ProjectSidebar({
 
 interface ProjectListItemProps {
   project: ProjectSummary;
+  isActive?: boolean;
   onRename?: (project: ProjectSummary) => void;
   onDelete?: (project: ProjectSummary) => void;
 }
 
 function ProjectListItem({
   project,
+  isActive,
   onRename,
   onDelete,
 }: ProjectListItemProps) {
   const showActions = project.ownership === "owned" && (onRename || onDelete);
 
   return (
-    <li className="group flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-bg-subtle">
+    <li
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "group flex items-center gap-2 rounded-xl px-3 py-2 hover:bg-bg-subtle",
+        isActive && "bg-bg-subtle ring-1 ring-inset ring-surface-border",
+      )}
+    >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-copy-primary">{project.name}</p>
         <p className="truncate font-mono text-xs text-copy-faint">
