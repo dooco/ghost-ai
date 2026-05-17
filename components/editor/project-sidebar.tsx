@@ -5,28 +5,27 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { MockProject } from "@/types/project";
+import type { ProjectSummary } from "@/types/project";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
-  projects: MockProject[];
+  ownedProjects: ProjectSummary[];
+  sharedProjects: ProjectSummary[];
   onClose?: () => void;
   onCreate: () => void;
-  onRename: (project: MockProject) => void;
-  onDelete: (project: MockProject) => void;
+  onRename: (project: ProjectSummary) => void;
+  onDelete: (project: ProjectSummary) => void;
 }
 
 export function ProjectSidebar({
   isOpen,
-  projects,
+  ownedProjects,
+  sharedProjects,
   onClose,
   onCreate,
   onRename,
   onDelete,
 }: ProjectSidebarProps) {
-  const ownedProjects = projects.filter((p) => p.ownership === "owned");
-  const sharedProjects = projects.filter((p) => p.ownership === "shared");
-
   return (
     <>
       <div
@@ -133,9 +132,9 @@ export function ProjectSidebar({
 }
 
 interface ProjectListItemProps {
-  project: MockProject;
-  onRename?: (project: MockProject) => void;
-  onDelete?: (project: MockProject) => void;
+  project: ProjectSummary;
+  onRename?: (project: ProjectSummary) => void;
+  onDelete?: (project: ProjectSummary) => void;
 }
 
 function ProjectListItem({
@@ -150,7 +149,7 @@ function ProjectListItem({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-copy-primary">{project.name}</p>
         <p className="truncate font-mono text-xs text-copy-faint">
-          {project.slug}
+          {project.id}
         </p>
       </div>
 

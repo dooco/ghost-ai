@@ -1,7 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const signInPath = process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL?.trim() || "/sign-in";
-const signUpPath = process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL?.trim() || "/sign-up";
+const signInPath =
+  process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL?.trim() || "/sign-in";
+const signUpPath =
+  process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL?.trim() || "/sign-up";
 
 const isPublicRoute = createRouteMatcher([
   signInPath + "(.*)",
@@ -9,6 +11,9 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return;
+  }
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
