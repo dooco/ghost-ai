@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import type { NextRequest } from "next/server";
 
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 interface RouteContext {
@@ -39,6 +40,32 @@ async function requireOwnedProject(projectId: string, userId: string) {
   return { project } as const;
 }
 
+function handleProjectMutationError(
+  action: "update" | "delete",
+  error: unknown,
+  projectId: string,
+) {
+  console.error(`Failed to ${action} project`, { projectId, error });
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2025") {
+      return Response.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    if (error.code === "P2003") {
+      return Response.json(
+        { error: "Project cannot be deleted while related records exist" },
+        { status: 409 },
+      );
+    }
+  }
+
+  return Response.json(
+    { error: `Failed to ${action} project` },
+    { status: 500 },
+  );
+}
+
 export async function PATCH(request: NextRequest, ctx: RouteContext) {
   const { userId } = await auth();
   if (!userId) {
@@ -64,10 +91,15 @@ export async function PATCH(request: NextRequest, ctx: RouteContext) {
     return ownership.error;
   }
 
-  const updated = await prisma.project.update({
-    where: { id: projectId },
-    data: { name },
-  });
+  let updated;
+  try {
+    updated = await prisma.project.update({
+      where: { id: projectId },
+      data: { name },
+    });
+  } catch (error) {
+    return handleProjectMutationError("update", error, projectId);
+  }
 
   return Response.json({ project: updated });
 }
@@ -85,7 +117,11 @@ export async function DELETE(_request: NextRequest, ctx: RouteContext) {
     return ownership.error;
   }
 
-  await prisma.project.delete({ where: { id: projectId } });
+  try {
+    await prisma.project.delete({ where: { id: projectId } });
+  } catch (error) {
+    return handleProjectMutationError("delete", error, projectId);
+  }
 
   return new Response(null, { status: 204 });
 }
