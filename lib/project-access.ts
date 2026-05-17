@@ -38,11 +38,12 @@ export async function getProjectForUser(
   if (!project) return null;
 
   const isOwner = project.ownerId === identity.userId;
-  const isCollaborator = identity.email
-    ? project.collaborators.some(
-        (collaborator: { email: string }) =>
-          collaborator.email === identity.email,
-      )
+  const normalizedIdentityEmail = identity.email?.toLowerCase() ?? null;
+  const isCollaborator = normalizedIdentityEmail
+    ? project.collaborators.some((collaborator: { email: string }) => {
+        const normalizedCollaboratorEmail = collaborator.email?.toLowerCase();
+        return normalizedCollaboratorEmail === normalizedIdentityEmail;
+      })
     : false;
 
   if (!isOwner && !isCollaborator) return null;

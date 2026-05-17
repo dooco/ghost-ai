@@ -38,6 +38,8 @@ Ghost AI is a real-time collaborative system design workspace. Users describe a 
 
 - Shared real-time canvas using Liveblocks and React Flow.
 - Live cursors, presence indicators, and node/edge editing.
+- Per-user presence carries cursor position and an `isThinking` flag surfaced during AI generation.
+- Each session is issued a Liveblocks ID token after Clerk auth and project-access checks; the project ID doubles as the Liveblocks room ID, and rooms are created on demand.
 - Canvas snapshots persisted to the filesystem.
 
 ### Starter System Designs

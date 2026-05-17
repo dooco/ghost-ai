@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { AiSidebarShell } from "@/components/editor/ai-sidebar-shell";
-import { CanvasSurface } from "@/components/editor/canvas-surface";
+import { CanvasRoom } from "@/components/editor/canvas-room";
 import { CreateProjectDialog } from "@/components/editor/create-project-dialog";
 import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog";
 import { EditorHome } from "@/components/editor/editor-home";
@@ -60,8 +60,8 @@ export function EditorWorkspaceShell({
 
       {hasActiveProject ? <AiSidebarShell isOpen={isAiSidebarOpen} /> : null}
 
-      {hasActiveProject ? (
-        <CanvasSurface />
+      {hasActiveProject && activeProjectId ? (
+        <CanvasRoom roomId={activeProjectId} />
       ) : (
         <EditorHome onCreateProject={actions.openCreate} />
       )}
