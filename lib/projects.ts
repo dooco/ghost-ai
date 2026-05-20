@@ -12,7 +12,7 @@ export async function getProjectsForCurrentUser(): Promise<UserProjectLists> {
   const user = await currentUser();
   if (!user) return { owned: [], shared: [] };
 
-  const email = user.emailAddresses[0]?.emailAddress;
+  const email = user.emailAddresses[0]?.emailAddress?.toLowerCase();
 
   type ProjectRow = { id: string; name: string };
 

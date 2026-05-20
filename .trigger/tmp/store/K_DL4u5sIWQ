@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../trigger/example.ts"],
+  "sourcesContent": ["import { logger, task } from \"@trigger.dev/sdk\";\n\nexport const helloWorld = task({\n  id: \"hello-world\",\n  run: async (payload: { name: string }) => {\n    logger.info(\"Hello from Trigger.dev\", { name: payload.name });\n    return { message: `Hello, ${payload.name}!` };\n  },\n});\n"],
+  "mappings": ";;;;;;;;;;;AAAA;AAEO,IAAM,aAAa,KAAK;AAAA,EAC7B,IAAI;AAAA,EACJ,KAAK,8BAAO,YAA8B;AACxC,WAAO,KAAK,0BAA0B,EAAE,MAAM,QAAQ,KAAK,CAAC;AAC5D,WAAO,EAAE,SAAS,UAAU,QAAQ,IAAI,IAAI;AAAA,EAC9C,GAHK;AAIP,CAAC;",
+  "names": []
+}

@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  ClientSideSuspense,
+  LiveblocksProvider,
+  RoomProvider,
+} from "@liveblocks/react/suspense";
 import { useState } from "react";
 
 import { AiSidebarShell } from "@/components/editor/ai-sidebar-shell";
@@ -8,9 +13,11 @@ import { CreateProjectDialog } from "@/components/editor/create-project-dialog";
 import { DeleteProjectDialog } from "@/components/editor/delete-project-dialog";
 import { EditorHome } from "@/components/editor/editor-home";
 import { EditorNavbar } from "@/components/editor/editor-navbar";
+import { PresenceAvatars } from "@/components/editor/presence-avatars";
 import { ProjectSidebar } from "@/components/editor/project-sidebar";
 import { RenameProjectDialog } from "@/components/editor/rename-project-dialog";
 import { ShareDialog } from "@/components/editor/share-dialog";
+import { type CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 import { useProjectActions } from "@/hooks/use-project-actions";
 import type { ProjectSummary } from "@/types/project";
 
@@ -32,38 +39,85 @@ export function EditorWorkspaceShell({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(true);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<CanvasSaveStatus>("idle");
 
   const actions = useProjectActions({ activeProjectId });
   const hasActiveProject = Boolean(activeProjectId);
 
-  return (
-    <main className="min-h-screen bg-bg-base text-copy-primary">
+  const workspaceContent = (
+    <>
       <EditorNavbar
         isSidebarOpen={isSidebarOpen}
         isAiSidebarOpen={isAiSidebarOpen}
         onSidebarToggle={() => setIsSidebarOpen((current) => !current)}
         onAiSidebarToggle={() => setIsAiSidebarOpen((current) => !current)}
         onShareClick={hasActiveProject ? () => setIsShareOpen(true) : undefined}
+        onTemplatesClick={
+          hasActiveProject ? () => setIsTemplatesOpen(true) : undefined
+        }
         projectName={projectName}
+        saveStatus={hasActiveProject ? saveStatus : undefined}
+        presenceSlot={
+          hasActiveProject ? (
+            <ClientSideSuspense fallback={null}>
+              <PresenceAvatars />
+            </ClientSideSuspense>
+          ) : undefined
+        }
       />
 
-      <ProjectSidebar
-        isOpen={isSidebarOpen}
-        ownedProjects={ownedProjects}
-        sharedProjects={sharedProjects}
-        activeProjectId={activeProjectId}
-        onClose={() => setIsSidebarOpen(false)}
-        onCreate={actions.openCreate}
-        onRename={actions.openRename}
-        onDelete={actions.openDelete}
-      />
+      <div className="flex min-h-0 flex-1">
+        <ProjectSidebar
+          isOpen={isSidebarOpen}
+          ownedProjects={ownedProjects}
+          sharedProjects={sharedProjects}
+          activeProjectId={activeProjectId}
+          onClose={() => setIsSidebarOpen(false)}
+          onCreate={actions.openCreate}
+          onRename={actions.openRename}
+          onDelete={actions.openDelete}
+        />
 
-      {hasActiveProject ? <AiSidebarShell isOpen={isAiSidebarOpen} /> : null}
+        <div className="min-w-0 flex-1">
+          {hasActiveProject && activeProjectId ? (
+            <CanvasRoom
+              roomId={activeProjectId}
+              isTemplatesOpen={isTemplatesOpen}
+              onTemplatesClose={() => setIsTemplatesOpen(false)}
+              onSaveStatusChange={setSaveStatus}
+            />
+          ) : (
+            <EditorHome onCreateProject={actions.openCreate} />
+          )}
+        </div>
 
+        {hasActiveProject ? (
+          <ClientSideSuspense fallback={null}>
+            <AiSidebarShell
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+              projectId={activeProjectId}
+            />
+          </ClientSideSuspense>
+        ) : null}
+      </div>
+    </>
+  );
+
+  return (
+    <main className="flex h-screen flex-col bg-bg-base text-copy-primary">
       {hasActiveProject && activeProjectId ? (
-        <CanvasRoom roomId={activeProjectId} />
+        <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+          <RoomProvider
+            id={activeProjectId}
+            initialPresence={{ cursor: null, thinking: false }}
+          >
+            {workspaceContent}
+          </RoomProvider>
+        </LiveblocksProvider>
       ) : (
-        <EditorHome onCreateProject={actions.openCreate} />
+        workspaceContent
       )}
 
       <CreateProjectDialog

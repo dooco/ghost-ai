@@ -1,34 +1,37 @@
 "use client";
 
-import {
-  ClientSideSuspense,
-  LiveblocksProvider,
-  RoomProvider,
-} from "@liveblocks/react/suspense";
+import { ClientSideSuspense } from "@liveblocks/react/suspense";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { CanvasFlow } from "@/components/editor/canvas-flow";
+import type { CanvasSaveStatus } from "@/hooks/use-canvas-autosave";
 
 interface CanvasRoomProps {
   roomId: string;
+  isTemplatesOpen?: boolean;
+  onTemplatesClose?: () => void;
+  onSaveStatusChange?: (status: CanvasSaveStatus) => void;
 }
 
-export function CanvasRoom({ roomId }: CanvasRoomProps) {
+export function CanvasRoom({
+  roomId,
+  isTemplatesOpen = false,
+  onTemplatesClose,
+  onSaveStatusChange,
+}: CanvasRoomProps) {
   return (
-    <section className="relative h-[calc(100vh-3.5rem)] p-4">
-      <div className="relative h-full overflow-hidden rounded-2xl border border-surface-border bg-bg-base">
-        <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
-          <RoomProvider
-            id={roomId}
-            initialPresence={{ cursor: null, isThinking: false }}
-          >
-            <ErrorBoundary fallback={<CanvasError />}>
-              <ClientSideSuspense fallback={<CanvasLoading />}>
-                <CanvasFlow />
-              </ClientSideSuspense>
-            </ErrorBoundary>
-          </RoomProvider>
-        </LiveblocksProvider>
+    <section className="relative h-full">
+      <div className="relative h-full overflow-hidden bg-bg-base">
+        <ErrorBoundary fallback={<CanvasError />}>
+          <ClientSideSuspense fallback={<CanvasLoading />}>
+            <CanvasFlow
+              projectId={roomId}
+              isTemplatesOpen={isTemplatesOpen}
+              onTemplatesClose={onTemplatesClose}
+              onSaveStatusChange={onSaveStatusChange}
+            />
+          </ClientSideSuspense>
+        </ErrorBoundary>
       </div>
     </section>
   );

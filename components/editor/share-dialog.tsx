@@ -99,20 +99,34 @@ export function ShareDialog({
         body: JSON.stringify({ email: trimmedEmail }),
       });
       if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        console.error("Invite collaborator failed", {
+          status: response.status,
+          body,
+        });
         if (response.status === 409) {
           setInviteError("That person is already a collaborator.");
         } else if (response.status === 400) {
           setInviteError("Please enter a valid email.");
+        } else if (response.status === 401) {
+          setInviteError("You are signed out. Reload and try again.");
+        } else if (response.status === 403) {
+          setInviteError("Only the project owner can invite collaborators.");
+        } else if (response.status === 404) {
+          setInviteError("Project not found. Reload and try again.");
         } else {
-          setInviteError("Could not invite this person.");
+          setInviteError(
+            `Could not invite this person (HTTP ${response.status}).`,
+          );
         }
         return;
       }
       const data = (await response.json()) as { collaborator: Collaborator };
       setCollaborators((prev) => [...prev, data.collaborator]);
       setEmail("");
-    } catch {
-      setInviteError("Could not invite this person.");
+    } catch (error) {
+      console.error("Invite collaborator network error", error);
+      setInviteError("Could not invite this person (network error).");
     } finally {
       setIsInviting(false);
     }

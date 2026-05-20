@@ -10,7 +10,7 @@ interface EditorHomeProps {
 
 export function EditorHome({ onCreateProject }: EditorHomeProps) {
   return (
-    <section className="flex h-[calc(100vh-3.5rem)] flex-col items-center justify-center px-6 text-center">
+    <section className="flex h-full flex-col items-center justify-center px-6 text-center">
       <h1 className="text-2xl font-semibold text-copy-primary">
         Create a project or open an existing one
       </h1>

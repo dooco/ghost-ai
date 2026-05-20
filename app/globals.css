@@ -35,6 +35,8 @@
   --color-copy-faint: var(--text-faint);
   --color-brand: var(--accent-primary);
   --color-accent-dim: var(--accent-primary-dim);
+  --color-accent-ai: var(--accent-ai);
+  --color-accent-ai-text: var(--accent-ai-text);
   --color-bg-auth-panel: var(--bg-auth-panel);
 
   --radius-xl: 0.75rem;

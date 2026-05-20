@@ -2,6 +2,8 @@ Add a bottom shape panel so users can drag shapes onto the canvas and create new
 
 ## Implementation
 
+Use liveblocks-best-practices for this feature
+
 1. Add a floating pill-shaped toolbar at the bottom-center of the canvas.
 
 2. Add draggable icon buttons for these shapes:

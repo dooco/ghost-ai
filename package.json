@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "trigger:dev": "trigger dev",
+    "trigger:deploy": "trigger deploy"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.75",
     "@clerk/nextjs": "^7.3.3",
     "@clerk/ui": "^1.9.1",
     "@liveblocks/client": "^3.19.1",
@@ -23,7 +26,12 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@trigger.dev/build": "^4.4.6",
+    "@trigger.dev/react-hooks": "^4.4.6",
+    "@trigger.dev/sdk": "^4.4.6",
+    "@vercel/blob": "^2.4.0",
     "@xyflow/react": "^12.10.2",
+    "ai": "^6.0.185",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",

@@ -33,7 +33,12 @@ export interface CanvasNodeData extends Record<string, unknown> {
 }
 
 export type CanvasNode = Node<CanvasNodeData, typeof CANVAS_NODE_TYPE>;
-export type CanvasEdge = Edge<Record<string, unknown>, typeof CANVAS_EDGE_TYPE>;
+
+export interface CanvasEdgeData extends Record<string, unknown> {
+  label?: string;
+}
+
+export type CanvasEdge = Edge<CanvasEdgeData, typeof CANVAS_EDGE_TYPE>;
 
 export const DEFAULT_NODE_COLOR: CanvasNodeColor = "neutral";
 
