@@ -1,4 +1,4 @@
-import { tasks } from "@trigger.dev/sdk";
+import { auth as triggerAuth, tasks } from "@trigger.dev/sdk";
 import type { NextRequest } from "next/server";
 
 import { prisma } from "@/lib/prisma";
@@ -91,5 +91,27 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return Response.json({ runId: handle.id });
+  let publicToken: string;
+  try {
+    publicToken = await triggerAuth.createPublicToken({
+      scopes: {
+        read: {
+          runs: [handle.id],
+        },
+      },
+      expirationTime: "1h",
+    });
+  } catch (error) {
+    console.error("Failed to create Trigger.dev public token", {
+      projectId: input.projectId,
+      runId: handle.id,
+      error,
+    });
+    return Response.json(
+      { error: "Failed to create realtime token" },
+      { status: 500 },
+    );
+  }
+
+  return Response.json({ runId: handle.id, publicToken });
 }

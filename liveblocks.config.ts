@@ -32,7 +32,7 @@ declare global {
           kind: "chat:message";
           id: string;
           sender: string;
-          role: "user";
+          role: "user" | "ai";
           content: string;
           timestamp: number;
         };

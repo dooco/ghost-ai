@@ -5,12 +5,22 @@ import {
   useBroadcastEvent,
   useEventListener,
 } from "@liveblocks/react/suspense";
-import { Bot, Download, FileText, Send, Sparkles, X } from "lucide-react";
+import { useRealtimeRun } from "@trigger.dev/react-hooks";
+import {
+  Bot,
+  Download,
+  FileText,
+  Loader2,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import type { designAgentTask } from "@/trigger/design-agent";
 import { chatMessageSchema, type ChatMessage } from "@/types/tasks";
 
 interface AiSidebarShellProps {
@@ -19,8 +29,35 @@ interface AiSidebarShellProps {
   projectId?: string;
 }
 
+interface ActiveRun {
+  runId: string;
+  publicToken: string;
+}
+
 const TEXTAREA_MIN_HEIGHT = 72;
 const TEXTAREA_MAX_HEIGHT = 160;
+const AI_SENDER_NAME = "Ghost AI";
+
+const ACTIVE_RUN_STATUSES = new Set([
+  "WAITING_FOR_DEPLOY",
+  "DELAYED",
+  "QUEUED",
+  "EXECUTING",
+  "REATTEMPTING",
+  "FROZEN",
+  "PAUSED",
+]);
+
+const FINAL_RUN_STATUSES = new Set([
+  "COMPLETED",
+  "FAILED",
+  "CANCELED",
+  "CRASHED",
+  "INTERRUPTED",
+  "SYSTEM_FAILURE",
+  "EXPIRED",
+  "TIMED_OUT",
+]);
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString([], {
@@ -42,6 +79,12 @@ function getSenderName(
   return null;
 }
 
+function createMessageId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `m-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function AiSidebarShell({
   isOpen,
   onClose,
@@ -53,8 +96,21 @@ export function AiSidebarShell({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sendError, setSendError] = useState<string | null>(null);
+  const [activeRun, setActiveRun] = useState<ActiveRun | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const { run, error: realtimeError } = useRealtimeRun<typeof designAgentTask>(
+    activeRun?.runId,
+    {
+      accessToken: activeRun?.publicToken,
+      enabled: Boolean(activeRun?.runId && activeRun.publicToken),
+    },
+  );
+
+  const isRunActive =
+    Boolean(activeRun) && (!run || ACTIVE_RUN_STATUSES.has(run.status));
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -71,18 +127,83 @@ export function AiSidebarShell({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEventListener(({ event }) => {
-    if (event.kind !== "chat:message") return;
-    const parsed = chatMessageSchema.safeParse(event);
-    if (!parsed.success) return;
+  const appendMessage = useCallback((message: ChatMessage) => {
     setMessages((prev) => {
-      if (prev.some((message) => message.id === parsed.data.id)) return prev;
-      return [...prev, parsed.data];
+      if (prev.some((m) => m.id === message.id)) return prev;
+      return [...prev, message];
     });
+  }, []);
+
+  const pushAiMessage = useCallback(
+    (content: string) => {
+      const candidate: unknown = {
+        id: createMessageId(),
+        sender: AI_SENDER_NAME,
+        role: "ai",
+        content,
+        timestamp: Date.now(),
+      };
+      const parsed = chatMessageSchema.safeParse(candidate);
+      if (!parsed.success) return;
+      try {
+        broadcast({ kind: "chat:message", ...parsed.data });
+      } catch {
+        // best-effort broadcast
+      }
+      appendMessage(parsed.data);
+    },
+    [appendMessage, broadcast],
+  );
+
+  useEventListener(({ event }) => {
+    if (event.kind === "chat:message") {
+      const parsed = chatMessageSchema.safeParse(event);
+      if (!parsed.success) return;
+      appendMessage(parsed.data);
+      return;
+    }
+    if (event.kind === "ai:status") {
+      const next = event.message ?? event.status;
+      if (typeof next === "string" && next.trim().length > 0) {
+        setStatusMessage(next);
+      }
+      return;
+    }
+    if (event.kind === "ai:start") {
+      setStatusMessage(event.status ?? "Starting");
+      return;
+    }
   });
 
+  useEffect(() => {
+    if (!run) return;
+    if (!FINAL_RUN_STATUSES.has(run.status)) return;
+
+    if (run.status === "COMPLETED") {
+      const summary =
+        run.output &&
+        typeof run.output.summary === "string" &&
+        run.output.summary.trim().length > 0
+          ? run.output.summary
+          : "Done.";
+      pushAiMessage(summary);
+    } else {
+      pushAiMessage(`AI run ${run.status.toLowerCase().replace(/_/g, " ")}.`);
+    }
+
+    setActiveRun(null);
+    setStatusMessage(null);
+  }, [run, pushAiMessage]);
+
+  useEffect(() => {
+    if (!realtimeError) return;
+    pushAiMessage(`Realtime connection error: ${realtimeError.message}`);
+    setActiveRun(null);
+    setStatusMessage(null);
+  }, [realtimeError, pushAiMessage]);
+
   const sendMessage = useCallback(
-    (text: string) => {
+    async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
 
@@ -98,10 +219,7 @@ export function AiSidebarShell({
       }
 
       const candidate: unknown = {
-        id:
-          typeof crypto !== "undefined" && "randomUUID" in crypto
-            ? crypto.randomUUID()
-            : `m-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id: createMessageId(),
         sender,
         role: "user",
         content: trimmed,
@@ -121,25 +239,68 @@ export function AiSidebarShell({
         return;
       }
 
-      setMessages((prev) => {
-        if (prev.some((message) => message.id === parsed.data.id)) return prev;
-        return [...prev, parsed.data];
-      });
+      appendMessage(parsed.data);
       setInput("");
       setSendError(null);
+
+      try {
+        const response = await fetch("/api/ai/design", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: trimmed,
+            roomId: projectId,
+            projectId,
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response
+            .json()
+            .then((b) => (b && typeof b.error === "string" ? b.error : null))
+            .catch(() => null);
+          pushAiMessage(
+            `Could not start the AI run${detail ? `: ${detail}` : "."}`,
+          );
+          return;
+        }
+
+        const body = (await response.json()) as {
+          runId?: unknown;
+          publicToken?: unknown;
+        };
+        const runId = typeof body.runId === "string" ? body.runId : null;
+        const publicToken =
+          typeof body.publicToken === "string" ? body.publicToken : null;
+
+        if (!runId || !publicToken) {
+          pushAiMessage("Could not start the AI run: invalid server response.");
+          return;
+        }
+
+        setStatusMessage("Starting…");
+        setActiveRun({ runId, publicToken });
+      } catch (error) {
+        pushAiMessage(
+          `Could not start the AI run: ${error instanceof Error ? error.message : "unknown error"}.`,
+        );
+      }
     },
-    [broadcast, projectId, user],
+    [appendMessage, broadcast, projectId, pushAiMessage, user],
   );
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      sendMessage(input);
+      if (isRunActive) return;
+      void sendMessage(input);
     }
   };
 
   const ownSenderName = getSenderName(user);
-  const disableInput = !projectId || !ownSenderName;
+  const disableInput = !projectId || !ownSenderName || isRunActive;
+  const disableSend =
+    input.trim().length === 0 || !projectId || !ownSenderName || isRunActive;
 
   return (
     <aside
@@ -198,13 +359,16 @@ export function AiSidebarShell({
                     <Bot className="h-5 w-5" />
                   </div>
                   <p className="text-xs text-copy-muted">
-                    No messages yet. Say hello to anyone else in this room.
+                    No messages yet. Describe what you want to design.
                   </p>
                 </div>
               ) : (
                 <ul className="flex flex-col gap-2 pr-1">
                   {messages.map((message) => {
-                    const isOwn = message.sender === ownSenderName;
+                    const isOwn =
+                      message.role === "user" &&
+                      message.sender === ownSenderName;
+                    const isAi = message.role === "ai";
                     return (
                       <li
                         key={message.id}
@@ -229,7 +393,9 @@ export function AiSidebarShell({
                             "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm",
                             isOwn
                               ? "border-2 border-brand/50 bg-accent-dim text-copy-primary"
-                              : "border border-surface-border bg-bg-elevated text-accent-ai-text",
+                              : isAi
+                                ? "border border-surface-border bg-bg-elevated text-accent-ai-text"
+                                : "border border-surface-border bg-bg-elevated text-copy-primary",
                           )}
                         >
                           {message.content}
@@ -243,6 +409,22 @@ export function AiSidebarShell({
             </div>
 
             <div className="flex flex-col gap-1">
+              {isRunActive ? (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex items-center gap-2 rounded-xl border border-accent-ai/40 bg-accent-ai/15 px-3 py-1.5 text-[11px] text-accent-ai-text"
+                >
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+                  </span>
+                  <span className="truncate">
+                    {statusMessage ?? "Working…"}
+                  </span>
+                </div>
+              ) : null}
+
               <div className="flex items-end gap-2 rounded-xl border border-surface-border bg-bg-subtle/60 p-2">
                 <textarea
                   ref={textareaRef}
@@ -254,7 +436,9 @@ export function AiSidebarShell({
                   onKeyDown={handleKeyDown}
                   placeholder={
                     projectId
-                      ? "Send a message to the room…"
+                      ? isRunActive
+                        ? "Ghost AI is working…"
+                        : "Describe what you want to design…"
                       : "Open a project to chat"
                   }
                   rows={1}
@@ -264,12 +448,16 @@ export function AiSidebarShell({
                 <Button
                   type="button"
                   size="icon"
-                  onClick={() => sendMessage(input)}
+                  onClick={() => void sendMessage(input)}
                   aria-label="Send message"
-                  disabled={input.trim().length === 0 || disableInput}
-                  className="bg-accent-ai text-white hover:bg-accent-ai/90"
+                  disabled={disableSend}
+                  className="bg-brand text-bg-base hover:bg-brand/90 disabled:opacity-60"
                 >
-                  <Send className="h-4 w-4" />
+                  {isRunActive ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               {sendError ? (
