@@ -1,5 +1,5 @@
 {
-  "configPath": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-cnunas/ghost_ai/trigger.config.mjs",
+  "configPath": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7IzC8U/ghost_ai/trigger.config.mjs",
   "customConditions": [
   ],
   "prompts": [
@@ -10,7 +10,7 @@
   "runtimeVersion": "20.19.5",
   "tasks": [
     {
-      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-cnunas/ghost_ai/trigger/design-agent.mjs",
+      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7IzC8U/ghost_ai/trigger/design-agent.mjs",
       "filePath": "trigger/design-agent.ts",
       "id": "design-agent",
       "maxDuration": 300,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-cnunas/ghost_ai/trigger/example.mjs",
+      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7IzC8U/ghost_ai/trigger/example.mjs",
       "filePath": "trigger/example.ts",
       "id": "hello-world",
       "maxDuration": 3600,
@@ -35,8 +35,8 @@
     }
   ],
   "timings": {
-    "trigger/design-agent.ts": 479.5695660000001,
-    "trigger/example.ts": 72.02754499999992
+    "trigger/design-agent.ts": 517.157743,
+    "trigger/example.ts": 3.1603170000000773
   },
-  "workerEntryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-cnunas/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs"
+  "workerEntryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7IzC8U/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs"
 }

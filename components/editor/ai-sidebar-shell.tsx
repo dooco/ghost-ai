@@ -100,6 +100,7 @@ export function AiSidebarShell({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const lastRealtimeErrorMessageRef = useRef<string | null>(null);
 
   const { run, error: realtimeError } = useRealtimeRun<typeof designAgentTask>(
     activeRun?.runId,
@@ -197,9 +198,14 @@ export function AiSidebarShell({
 
   useEffect(() => {
     if (!realtimeError) return;
+    if (lastRealtimeErrorMessageRef.current === realtimeError.message) {
+      return;
+    }
+
     pushAiMessage(`Realtime connection error: ${realtimeError.message}`);
     setActiveRun(null);
     setStatusMessage(null);
+    lastRealtimeErrorMessageRef.current = realtimeError.message;
   }, [realtimeError, pushAiMessage]);
 
   const sendMessage = useCallback(

@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
           runs: [handle.id],
         },
       },
-      expirationTime: "1h",
+      expirationTime: "1hr",
     });
   } catch (error) {
     console.error("Failed to create Trigger.dev public token", {
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       error,
     });
     return Response.json(
-      { error: "Failed to create realtime token" },
+      { error: "Failed to create realtime token", runId: handle.id },
       { status: 500 },
     );
   }
