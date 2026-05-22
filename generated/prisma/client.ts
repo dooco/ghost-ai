@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model ProjectSpec
+ * 
+ */
+export type ProjectSpec = Prisma.ProjectSpecModel
+/**
  * Model ProjectCollaborator
  * 
  */

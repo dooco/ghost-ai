@@ -1,0 +1,215 @@
+{
+  "configPath": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7QXL48/ghost_ai/trigger.config.mjs",
+  "customConditions": [
+  ],
+  "prompts": [
+  ],
+  "queues": [
+  ],
+  "runtime": "node",
+  "runtimeVersion": "20.19.5",
+  "tasks": [
+    {
+      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7QXL48/ghost_ai/trigger/design-agent.mjs",
+      "filePath": "trigger/design-agent.ts",
+      "id": "design-agent",
+      "maxDuration": 300,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000
+      }
+    },
+    {
+      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7QXL48/ghost_ai/trigger/example.mjs",
+      "filePath": "trigger/example.ts",
+      "id": "hello-world",
+      "maxDuration": 3600,
+      "retry": {
+        "factor": 2,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 10000,
+        "minTimeoutInMs": 1000
+      }
+    },
+    {
+      "entryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7QXL48/ghost_ai/trigger/generate-spec.mjs",
+      "filePath": "trigger/generate-spec.ts",
+      "id": "generate-spec",
+      "maxDuration": 300,
+      "payloadSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "additionalProperties": false,
+        "properties": {
+          "chatHistory": {
+            "default": [
+            ],
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "content": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "user",
+                    "ai"
+                  ],
+                  "type": "string"
+                },
+                "sender": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "sender",
+                "role",
+                "content",
+                "timestamp"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "edges": {
+            "default": [
+            ],
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "data": {
+                  "additionalProperties": {
+                  },
+                  "properties": {
+                    "label": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "source",
+                "target"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "nodes": {
+            "default": [
+            ],
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "data": {
+                  "additionalProperties": {
+                  },
+                  "properties": {
+                    "color": {
+                      "enum": [
+                        "neutral",
+                        "blue",
+                        "purple",
+                        "orange",
+                        "red",
+                        "pink",
+                        "green",
+                        "teal"
+                      ],
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "shape": {
+                      "enum": [
+                        "rectangle",
+                        "diamond",
+                        "circle",
+                        "pill",
+                        "cylinder",
+                        "hexagon"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "position": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "id"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "roomId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "projectId",
+          "roomId",
+          "chatHistory",
+          "nodes",
+          "edges"
+        ],
+        "type": "object"
+      },
+      "retry": {
+        "factor": 1.8,
+        "maxAttempts": 3,
+        "maxTimeoutInMs": 30000,
+        "minTimeoutInMs": 1000,
+        "randomize": true
+      }
+    }
+  ],
+  "timings": {
+    "trigger/design-agent.ts": 1127.58428,
+    "trigger/example.ts": 139.52400000000034,
+    "trigger/generate-spec.ts": 22.407901999999922
+  },
+  "workerEntryPoint": "/Users/clodaghbarry/ghost_ai/.trigger/tmp/build-7QXL48/.npm/_npx/f51a09bd0abf5f10/node_modules/trigger.dev/dist/esm/entryPoints/dev-run-worker.mjs"
+}
