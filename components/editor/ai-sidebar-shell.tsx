@@ -6,17 +6,10 @@ import {
   useEventListener,
 } from "@liveblocks/react/suspense";
 import { useRealtimeRun } from "@trigger.dev/react-hooks";
-import {
-  Bot,
-  Download,
-  FileText,
-  Loader2,
-  Send,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Bot, Loader2, Send, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { SpecsTab } from "@/components/editor/specs-tab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -476,7 +469,7 @@ export function AiSidebarShell({
 
           <TabsContent
             value="specs"
-            className="mt-4 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto data-[state=inactive]:hidden"
+            className="mt-4 flex min-h-0 flex-1 flex-col gap-3 data-[state=inactive]:hidden"
           >
             <Button
               type="button"
@@ -486,34 +479,13 @@ export function AiSidebarShell({
               Generate Spec
             </Button>
 
-            <article className="rounded-xl border border-surface-border bg-bg-elevated p-3">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-ai/15 text-accent-ai-text">
-                  <FileText className="h-4 w-4" />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <h3 className="text-sm font-medium text-copy-primary">
-                    Microservices architecture spec
-                  </h3>
-                  <p className="line-clamp-2 text-xs text-copy-muted">
-                    Auth, billing, and notifications split into independent
-                    services behind a shared API gateway.
-                  </p>
-                  <div className="mt-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled
-                      className="h-7 px-2 text-xs text-copy-muted"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </article>
+            {projectId ? (
+              <SpecsTab projectId={projectId} />
+            ) : (
+              <p className="px-1 text-xs text-copy-muted">
+                Open a project to view specs.
+              </p>
+            )}
           </TabsContent>
         </Tabs>
       </div>
